@@ -46,6 +46,16 @@ public class PhraseAppDownload extends Task {
 	private String projectAuthToken;
 
 	/**
+	 * if set to true, places the translation files in the package according to
+	 * the file names (e.g. com.company.module.i18n.module.properties goes to
+	 * destinationDir/com/company/module/i18n/module.properties), if set to
+	 * false places the translation file in a locale folder with the tag name as
+	 * file name (e.g. com.company.module.i18n.module.properties goes to
+	 * destinationDir /locale/com.company.module.i18n.module.properties)
+	 */
+	private boolean mergeInPackageStructure;
+
+	/**
 	 * Internal test method to check if the Ant task is working
 	 * 
 	 * @param args
@@ -64,6 +74,10 @@ public class PhraseAppDownload extends Task {
 
 	public void setProjectAuthToken(String projectAuthToken) {
 		this.projectAuthToken = projectAuthToken;
+	}
+
+	public void setMergeInPackageStructure(boolean mergeInPackageStructure) {
+		this.mergeInPackageStructure = mergeInPackageStructure;
 	}
 
 	/**
@@ -119,9 +133,12 @@ public class PhraseAppDownload extends Task {
 		String[] localesJson = response.split("\\},\\{");
 		for (String localeJson : localesJson) {
 
-			// skip main locale, as it's not needed (translations are contained
-			// already in the Java Message interfaces)
-			if (!localeJson.contains("\"code\":\"en\"")) {
+			// skip main locale if translation files merged to package
+			// structure, as it's not needed (translations are contained
+			// already in the Java Message interfaces), otherwise also include
+			// main locale for a complete backup
+			if (!mergeInPackageStructure
+					|| !localeJson.contains("\"code\":\"en\"")) {
 
 				String[] localeJsonFields = localeJson.split(",");
 
@@ -189,6 +206,17 @@ public class PhraseAppDownload extends Task {
 		return tags;
 	}
 
+	/**
+	 * Downloads all translations for the given locales and tags and saves them
+	 * as Java .properties files.
+	 * 
+	 * @param locales
+	 *            list of locales to download translations for all given tags
+	 *            for
+	 * @param tags
+	 *            list of tags to download translations of a locale for
+	 * @throws IOException
+	 */
 	private void downloadTranslationPropertiesFiles(
 			final Map<String, String> locales, List<String> tags)
 			throws IOException {
@@ -235,13 +263,24 @@ public class PhraseAppDownload extends Task {
 									String response = PhraseAppHelper
 											.getAsString(con);
 
-									String fileName = destinationDir
-											+ System.getProperty("file.separator")
-											+ tag.replaceAll(".properties", "")
-													.replaceAll(
-															"\\.",
-															System.getProperty("file.separator"))
-											+ "_" + localeCode + ".properties";
+									String fileName = "";
+									if (mergeInPackageStructure) {
+										fileName = destinationDir
+												+ System.getProperty("file.separator")
+												+ tag.replaceAll(".properties",
+														"")
+														.replaceAll(
+																"\\.",
+																System.getProperty("file.separator"))
+												+ "_" + localeCode
+												+ ".properties";
+									} else {
+										fileName = destinationDir
+												+ System.getProperty("file.separator")
+												+ localeCode
+												+ System.getProperty("file.separator")
+												+ tag;
+									}
 
 									File file = new File(fileName);
 									// create missing intermediary directories

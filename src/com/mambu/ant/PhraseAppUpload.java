@@ -1,10 +1,11 @@
 package com.mambu.ant;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -277,19 +278,21 @@ public class PhraseAppUpload extends Task {
 			UnsupportedEncodingException, MalformedURLException, IOException,
 			ProtocolException {
 
-		Scanner s = new java.util.Scanner(new FileReader(file))
-				.useDelimiter("\\A");
+		Scanner s = new java.util.Scanner(new InputStreamReader(
+				new FileInputStream(file), "UTF-8")).useDelimiter("\\A");
 		String fileContent = s.hasNext() ? s.next() : "";
 
 		// prepend namespace prefix
-		String fileConentWithPrefixes = "";
+		String fileContentWithPrefixes = "";
 		for (String line : fileContent.split("\\r?\\n")) {
 			if (!line.trim().isEmpty() && !line.startsWith("#")
 					&& !(prefix + line).equals(prefix)
 					&& !line.trim().endsWith(" =") && !line.trim().equals("=")) {
-				fileConentWithPrefixes += prefix + line + "\n";
-			} else if (line.trim().isEmpty() || line.startsWith("#")) {
-				fileConentWithPrefixes += line + "\n";
+				fileContentWithPrefixes += prefix + line + "\n";
+			}
+			// skip adding prefix for comments and empty lines
+			else if (line.trim().isEmpty() || line.startsWith("#")) {
+				fileContentWithPrefixes += line + "\n";
 			}
 		}
 
@@ -298,7 +301,7 @@ public class PhraseAppUpload extends Task {
 
 		String request = "auth_token=" + projectAuthToken + "&filename="
 				+ file.getName() + "&file_content="
-				+ URLEncoder.encode(fileConentWithPrefixes, "UTF-8")
+				+ URLEncoder.encode(fileContentWithPrefixes, "UTF-8")
 				+ "&tags[]=" + file.getName() + "&locale_code=" + localeCode
 				+ "&file_format=" + "properties" + "&update_translations="
 				+ "1";

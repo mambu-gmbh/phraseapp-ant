@@ -56,6 +56,12 @@ public class PhraseAppDownload extends Task {
 	private boolean mergeInPackageStructure;
 
 	/**
+	 * if set to true, the main locale is included, if set to false the main
+	 * locale is excluded
+	 */
+	private boolean includeMainLocale;
+
+	/**
 	 * Internal test method to check if the Ant task is working
 	 * 
 	 * @param args
@@ -65,6 +71,8 @@ public class PhraseAppDownload extends Task {
 		PhraseAppDownload download = new PhraseAppDownload();
 		download.setDestination("");
 		download.setProjectAuthToken("");
+		download.setMergeInPackageStructure(false);
+		download.setIncludeMainLocale(false);
 		download.execute();
 	}
 
@@ -78,6 +86,10 @@ public class PhraseAppDownload extends Task {
 
 	public void setMergeInPackageStructure(boolean mergeInPackageStructure) {
 		this.mergeInPackageStructure = mergeInPackageStructure;
+	}
+
+	public void setIncludeMainLocale(boolean includeMainLocale) {
+		this.includeMainLocale = includeMainLocale;
 	}
 
 	/**
@@ -137,7 +149,7 @@ public class PhraseAppDownload extends Task {
 			// structure, as it's not needed (translations are contained
 			// already in the Java Message interfaces), otherwise also include
 			// main locale for a complete backup
-			if (!mergeInPackageStructure
+			if ((includeMainLocale && localeJson.contains("\"code\":\"en\""))
 					|| !localeJson.contains("\"code\":\"en\"")) {
 
 				String[] localeJsonFields = localeJson.split(",");

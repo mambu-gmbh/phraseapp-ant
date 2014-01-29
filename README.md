@@ -56,6 +56,7 @@ Usage of Download Target
  - projectAuthToken: your PhraseApp project Auth Token, in order to find this out, login to PhraseApp, go to https://phraseapp.com/projects and copy your project's Auth Token
  - destination: the absolute location where your translation files (Java *.properties files) should be copied to, e.g. '/users/username/project/src', for every sub-package in a tag a subdirectory will be created (e.g. src/com/orgname/module) and the locale code will be appended (e.g. a Spanish locale with the locale code 'es' and a tag with the name 'com.orgname.module.translations.properties' will be placed in src/com/orgname/module/translations_es.properties)
  - mergeInPackageStructure: if set to "true", places the translation files for non-English locales in the package according to the file names (e.g. com.company.module.i18n.module.properties goes to destinationDir/com/company/module/i18n/module.properties), if set to "false" places the translation files of all locales in a locale folder with the tag name as file name (e.g. com.company.module.i18n.module.properties goes to destinationDir /locale/com.company.module.i18n.module.properties)
+ - includeMainLocale: if set to "true", includes the main locale during the download, if set to false skips the main locale during the download 
 
 
 3. In your build.xml add the target as seen below and replace the "downloadTranslation" task parameters with your own values (see above).
@@ -71,7 +72,8 @@ build.xml:
 		<property name="absolute.path.dir" location="relative/path/to/translations-directory"/>
 		<downloadTranslation destination="${absolute.path.dir}" 
 			projectAuthToken="yourproject-auth-token"
-			mergeInPackageStructure="true" />
+			mergeInPackageStructure="true"
+			includeMainLocale="true" />
 	</target>
 </project>
 ```

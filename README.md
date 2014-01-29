@@ -20,6 +20,7 @@ Usage of Upload Target
 2. Then you need a PhraseApp account and project. In the "uploadTranslation" Ant task you need to define:
  - projectAuthToken: your PhraseApp project Auth Token, in order to find this out, login to PhraseApp, go to https://phraseapp.com/projects and copy your project's Auth Token
  - source: the location where your master translation files (Java *.properties files) are located, e.g. translation/en
+ - locale: the locale for which the translations should be uploaded to, if not set, "English" is used
 
 
 3. In your build.xml add the target as seen below and replace the "uploadTranslation" task parameters with your own values (see above).
@@ -33,7 +34,7 @@ build.xml:
 		<taskdef name="uploadTranslation" classname="com.mambu.ant.PhraseAppUpload" 
 			classpath="lib/build/phraseapp-1.0.jar:lib/build/commons-lang3-3.1.jar" />
 		<uploadTranslation source="relative/path/to/properties-files-directory" 
-			projectAuthToken="yourproject-auth-token" />
+			projectAuthToken="yourproject-auth-token" locale="English" />
 	</target>
 </project>
 ```

@@ -278,9 +278,15 @@ public class PhraseAppUpload extends Task {
 			UnsupportedEncodingException, MalformedURLException, IOException,
 			ProtocolException {
 
-		Scanner s = new java.util.Scanner(new InputStreamReader(
-				new FileInputStream(file), "UTF-8")).useDelimiter("\\A");
-		String fileContent = s.hasNext() ? s.next() : "";
+		FileInputStream fis = new FileInputStream(file);
+		InputStreamReader isr = new InputStreamReader(fis, "UTF-8");
+		Scanner scanner = new Scanner(isr);
+		Scanner scanner2 = scanner.useDelimiter("\\A");
+		String fileContent = scanner2.hasNext() ? scanner2.next() : "";
+		scanner2.close();
+		scanner.close();
+		isr.close();
+		fis.close();
 
 		// prepend namespace prefix
 		String fileContentWithPrefixes = "";

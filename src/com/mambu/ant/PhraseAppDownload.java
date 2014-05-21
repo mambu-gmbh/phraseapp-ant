@@ -227,11 +227,9 @@ public class PhraseAppDownload extends Task {
 	 *            for
 	 * @param tags
 	 *            list of tags to download translations of a locale for
-	 * @throws IOException
 	 */
 	private void downloadTranslationPropertiesFiles(
-			final Map<String, String> locales, List<String> tags)
-			throws IOException {
+			final Map<String, String> locales, List<String> tags) {
 
 		final AtomicInteger failedDownloads = new AtomicInteger(0);
 

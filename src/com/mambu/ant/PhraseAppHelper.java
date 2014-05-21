@@ -9,11 +9,18 @@ public class PhraseAppHelper {
 
 	public static String getAsString(HttpsURLConnection connectionUpload)
 			throws IOException {
-		String responseJsonUpload;
-		Scanner sUpload = new java.util.Scanner(
-				connectionUpload.getInputStream(), "UTF-8").useDelimiter("\\A");
-		responseJsonUpload = sUpload.hasNext() ? sUpload.next() : "";
-		return responseJsonUpload;
+
+		Scanner scanner = new Scanner(connectionUpload.getInputStream(),
+				"UTF-8");
+		Scanner scanner2 = scanner.useDelimiter("\\A");
+
+		String fileContent = scanner2.hasNext() ? scanner2.next() : "";
+
+		scanner2.close();
+		scanner.close();
+
+		return fileContent;
+
 	}
 
 }

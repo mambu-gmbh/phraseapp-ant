@@ -124,8 +124,8 @@ public class PhraseAppUpload extends Task {
 
 			final AtomicInteger failedUploads = new AtomicInteger(0);
 
-			ExecutorService exec = Executors.newFixedThreadPool(Runtime
-					.getRuntime().availableProcessors() / 2);
+			// max 2 parallel connections are allowed by phraseapp, otherwise returns HTTP error code 429
+			ExecutorService exec = Executors.newFixedThreadPool(2);
 
 			try {
 

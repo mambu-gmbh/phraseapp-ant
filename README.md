@@ -32,7 +32,7 @@ build.xml:
 <project name="MyProject" default="UploadTranslations" basedir=".">
 	<target name="UploadTranslations" description="Upload Translations (PhraseApp)">
 		<taskdef name="uploadTranslation" classname="com.mambu.ant.PhraseAppUpload" 
-			classpath="lib/build/phraseapp-1.3.jar:lib/build/commons-lang3-3.1.jar" />
+			classpath="lib/build/phraseapp-1.4.jar:lib/build/commons-lang3-3.1.jar" />
 		<uploadTranslation source="relative/path/to/properties-files-directory" 
 			projectAuthToken="yourproject-auth-token" locale="English" />
 	</target>
@@ -68,7 +68,7 @@ build.xml:
 <project name="MyProject" default="DownloadTranslations" basedir=".">
 	<target name="DownloadTranslations" description="Download Translations (PhraseApp)">
 		<taskdef name="downloadTranslation" classname="com.mambu.ant.PhraseAppDownload" 
-			classpath="lib/build/phraseapp-1.3.jar:lib/build/commons-lang3-3.1.jar" />
+			classpath="lib/build/phraseapp-1.4.jar:lib/build/commons-lang3-3.1.jar" />
 		<property name="absolute.path.dir" location="relative/path/to/translations-directory"/>
 		<downloadTranslation destination="${absolute.path.dir}" 
 			projectAuthToken="yourproject-auth-token"
@@ -105,7 +105,7 @@ build.xml:
 <project name="MyProject" default="DownloadTranslations" basedir=".">
 	<target name="inContextEditorFormat" description="Takes master translation properties files from 'source' and replaces each translation with '[[__' + moduleName + '.' + key + '__]]' so that PhraseApp's In-Context editor can identify for which strings the In-Context Editor should be added.">
 		<taskdef name="inContextEditorFormat" classname="com.mambu.ant.PhraseAppInContextEditorFormat" 
-			classpath="lib/build/phraseapp-1.3.jar:lib/build/commons-lang3-3.1.jar" />
+			classpath="lib/build/phraseapp-1.4.jar:lib/build/commons-lang3-3.1.jar" />
 		<property name="absolute.path.dir" location="relative/path/to/translations-directory"/>
 		<inContextEditorFormat source="relative/path/to/properties-files-directory" 
 			destination="${absolute.src.dir}" />

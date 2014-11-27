@@ -1,7 +1,10 @@
 *.class
 
 # Package Files #
-*.jar
 *.war
 *.ear
 /bin
+build/phraseapp-1.0.jar
+build/phraseapp-1.1.jar
+build/phraseapp-1.2.jar
+build/phraseapp-1.3.jar

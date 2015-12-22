@@ -49,9 +49,14 @@ public class PhraseAppUpload extends Task {
 	private String locale;
 
 	/**
-	 * the auth token of the PhraseApp project
+	 * the auth token of the user who performs the action
 	 */
-	private String projectAuthToken;
+	private String userAuthToken;
+
+	/**
+	 * Project id from PhraseApp
+	 */
+	private String projectId;
 
 	/**
 	 * Internal test method to check if the Ant task is working
@@ -62,7 +67,7 @@ public class PhraseAppUpload extends Task {
 	public static void main(String[] args) {
 		PhraseAppUpload upload = new PhraseAppUpload();
 		upload.setSource("");
-		upload.setProjectAuthToken("");
+		upload.setUserAuthToken("");
 		upload.setLocale(DEFAULT_LOCALE_CODE);
 		upload.execute();
 	}
@@ -71,8 +76,12 @@ public class PhraseAppUpload extends Task {
 		this.sourceDir = sourceDir;
 	}
 
-	public void setProjectAuthToken(String projectAuthToken) {
-		this.projectAuthToken = projectAuthToken;
+	public void setUserAuthToken(String userAuthToken) {
+		this.userAuthToken = userAuthToken;
+	}
+
+	public void setProjectId(String projectId) {
+		this.projectId = projectId;
 	}
 
 	public void setLocale(String locale) {
@@ -148,7 +157,7 @@ public class PhraseAppUpload extends Task {
 								log("Sent file upload request for file: "
 										+ file.getName()
 										+ " to "
-										+ "https://phraseapp.com/api/v1/translation_keys/upload/"
+										+ PhraseAppHelper.PHRASE_APP_BASE_URL + "/translation_keys/upload/"
 										+ ".");
 
 								if (connectionUpload.getResponseCode() == 200) {
@@ -305,15 +314,14 @@ public class PhraseAppUpload extends Task {
 		String localeCode = locale != null && !locale.isEmpty() ? locale
 				: DEFAULT_LOCALE_CODE;
 
-		String request = "auth_token=" + projectAuthToken + "&filename="
+		String request = "access_token=" + userAuthToken + "&filename="
 				+ file.getName() + "&file_content="
 				+ URLEncoder.encode(fileContentWithPrefixes, "UTF-8")
 				+ "&tags[]=" + file.getName() + "&locale_code=" + localeCode
 				+ "&file_format=" + "properties" + "&update_translations="
 				+ "1";
 
-		URL urlUpload = new URL(
-				"https://phraseapp.com/api/v1/translation_keys/upload/");
+		URL urlUpload = new URL(PhraseAppHelper.PHRASE_APP_BASE_URL + projectId + "/uploads");
 		HttpsURLConnection connectionUpload = (HttpsURLConnection) urlUpload
 				.openConnection();
 		connectionUpload.setHostnameVerifier(new HostnameVerifier() {

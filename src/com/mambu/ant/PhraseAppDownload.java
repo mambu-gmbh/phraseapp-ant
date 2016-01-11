@@ -80,8 +80,8 @@ public class PhraseAppDownload extends Task {
 	public static void main(String[] args) {
 		PhraseAppDownload download = new PhraseAppDownload();
 		download.setDestination("");
-		download.setUserAuthToken("8cad63a6213d08b79418e83eda1ca1e00f1cc59a1f42c03f600ba1e2b33e7b0c");
-		download.setProjectId("255167955b335efb75fed179f65ea85b");
+		download.setUserAuthToken("");
+		download.setProjectId("");
 		download.setMergeInPackageStructure(false);
 		download.setIncludeMainLocale(false);
 		download.execute();
@@ -377,13 +377,21 @@ public class PhraseAppDownload extends Task {
 									// create missing intermediary directories
 									file.getParentFile().mkdirs();
 
-									// remove comments
 									List<String> responseFiltered = new ArrayList<String>();
 									for (String responseLine : response
 											.split("\n")) {
-										if (!responseLine.startsWith("#")) {
-											responseFiltered.add(responseLine);
+										// skip comments
+										if (responseLine.startsWith("#")) {
+											continue;
 										}
+
+										// skip keys that don't have translations
+										String[] keyAndValue = responseLine.split("=");
+										if (keyAndValue.length > 1 && StringUtils.isBlank(keyAndValue[1])) {
+											continue;
+										}
+
+										responseFiltered.add(responseLine);
 									}
 
 									// concatenate to one string and remove

@@ -172,7 +172,7 @@ public class PhraseAppDownload extends Task {
 				String localeId = null;
 				String localeCode = null;
 				for (String localeJsonField : localeJsonFields) {
-					if (localeJsonField.contains("\"id\"")) {
+					if (localeJsonField.contains("\"id\"") && localeId == null) {
 						String prefixName = "\"id\":\"";
 						String suffixName = "\"";
 						localeId = localeJsonField.substring(

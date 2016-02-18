@@ -11,13 +11,17 @@ import java.net.URL;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
@@ -25,6 +29,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 
@@ -41,9 +46,14 @@ public class PhraseAppDownload extends Task {
 	private String destinationDir;
 
 	/**
-	 * the auth token of the PhraseApp project
+	 * the auth token of the user who performs the action
 	 */
-	private String projectAuthToken;
+	private String userAuthToken;
+
+	/**
+	 * Project id from PhraseApp
+	 */
+	private String projectId;
 
 	/**
 	 * if set to true, places the translation files in the package according to
@@ -70,7 +80,8 @@ public class PhraseAppDownload extends Task {
 	public static void main(String[] args) {
 		PhraseAppDownload download = new PhraseAppDownload();
 		download.setDestination("");
-		download.setProjectAuthToken("");
+		download.setUserAuthToken("");
+		download.setProjectId("");
 		download.setMergeInPackageStructure(false);
 		download.setIncludeMainLocale(false);
 		download.execute();
@@ -80,8 +91,12 @@ public class PhraseAppDownload extends Task {
 		this.destinationDir = destinationDir;
 	}
 
-	public void setProjectAuthToken(String projectAuthToken) {
-		this.projectAuthToken = projectAuthToken;
+	public void setUserAuthToken(String userAuthToken) {
+		this.userAuthToken = userAuthToken;
+	}
+
+	public void setProjectId(String projectId) {
+		this.projectId = projectId;
 	}
 
 	public void setMergeInPackageStructure(boolean mergeInPackageStructure) {
@@ -126,8 +141,8 @@ public class PhraseAppDownload extends Task {
 
 		Map<String, String> locales = new HashMap<String, String>();
 
-		URL url = new URL("https://phraseapp.com/api/v1/locales?auth_token="
-				+ projectAuthToken);
+		URL url = new URL(PhraseAppHelper.PHRASE_APP_BASE_URL + projectId + "/locales?per_page=100&access_token="
+				+ userAuthToken);
 		HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
 
 		log("Getting all locales using a 'GET' request to URL : "
@@ -154,13 +169,13 @@ public class PhraseAppDownload extends Task {
 
 				String[] localeJsonFields = localeJson.split(",");
 
-				String localeName = null;
+				String localeId = null;
 				String localeCode = null;
 				for (String localeJsonField : localeJsonFields) {
-					if (localeJsonField.contains("\"name\"")) {
-						String prefixName = "\"name\":\"";
+					if (localeJsonField.contains("\"id\"") && localeId == null) {
+						String prefixName = "\"id\":\"";
 						String suffixName = "\"";
-						localeName = localeJsonField.substring(
+						localeId = localeJsonField.substring(
 								localeJsonField.indexOf(prefixName)
 										+ prefixName.length(),
 								localeJsonField.lastIndexOf(suffixName));
@@ -174,7 +189,7 @@ public class PhraseAppDownload extends Task {
 					}
 				}
 
-				locales.put(localeCode, localeName);
+				locales.put(localeCode, localeId);
 			}
 		}
 
@@ -186,9 +201,12 @@ public class PhraseAppDownload extends Task {
 	private List<String> getListOfTags() throws IOException {
 
 		List<String> tags = new ArrayList<String>();
+		List<String> responses = new LinkedList<String>();
 
-		URL url = new URL("https://phraseapp.com/api/v1/tags?auth_token="
-				+ projectAuthToken);
+		String finalUrl = PhraseAppHelper.PHRASE_APP_BASE_URL + projectId + "/tags?per_page=100&access_token="
+				+ userAuthToken;
+
+		URL url = new URL(finalUrl);
 		HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
 
 		log("Getting all tags using a 'GET' request to URL : "
@@ -200,17 +218,61 @@ public class PhraseAppDownload extends Task {
 		log("Response Code : " + responseCode);
 
 		// parse response as string
-		String response = PhraseAppHelper.getAsString(con);
+		responses.add(PhraseAppHelper.getAsString(con));
 
-		// parse JSON to locales list
-		String[] tagsJson = response.split("\\},\\{");
-		for (String tagJson : tagsJson) {
-			String prefix = "\"name\":\"";
-			String suffix = "\"";
-			String tag = tagJson.substring(
-					tagJson.indexOf(prefix) + prefix.length(),
-					tagJson.lastIndexOf(suffix));
-			tags.add(tag);
+		// the Phraseapp API is paginated, so we need to get the information about the last page and perform several
+		// calls till we fetch all the informations
+		String linksField = con.getHeaderField("Link");
+
+		log("All tags link header value : " + linksField);
+
+		if (!StringUtils.isEmpty(linksField)) {
+
+			Integer lastPage = getLastPage(linksField);
+
+			log("Number of pages for getting all tags : " + lastPage);
+
+			if (lastPage > 1) {
+				// first page was already retrived - from there we got the informations about the last page
+				for (int i = 2; i <= lastPage; i++) {
+
+					// append the page index
+					url = new URL(finalUrl + "&page=" + i);
+					con = (HttpsURLConnection) url.openConnection();
+
+					log("Getting all tags using a 'GET' request to URL : " + url.toExternalForm());
+
+					// execute request
+					responseCode = con.getResponseCode();
+
+					log("Response Code : " + responseCode);
+
+					responses.add(PhraseAppHelper.getAsString(con));
+				}
+			}
+		}
+
+		for (String response : responses) {
+			// parse JSON to locales list
+			String[] tagsJson = response.split("\\},\\{");
+			for (String tagJson : tagsJson) {
+
+				// matches the name field: eq "name":"com.mambu.accounting.client.i18n.AccountingMessage.properties"
+				Pattern namePattern = Pattern.compile("\"name\":\"[^,]*");
+
+				Matcher matcher = namePattern.matcher(tagJson);
+				matcher.find();
+				String jsonNameElement = matcher.group();
+
+				// split the name parameter, so we will remain just with
+				// "com.mambu.accounting.client.i18n.AccountingMessage.properties"
+				String nameEnclosedInDoubleQuotes = jsonNameElement.split(":")[1];
+				// remove the double quotes, so we will remain with
+				// com.mambu.accounting.client.i18n.AccountingMessage.properties
+				String tag = nameEnclosedInDoubleQuotes.substring(1, nameEnclosedInDoubleQuotes.length() - 1);
+
+				tags.add(tag);
+			}
 		}
 
 		log("Found tags: " + Arrays.toString(tags.toArray()));
@@ -219,12 +281,40 @@ public class PhraseAppDownload extends Task {
 	}
 
 	/**
-	 * Downloads all translations for the given locales and tags and saves them
-	 * as Java .properties files.
+	 * Get the last page from the Phraseapp header link field. It contains informations about the first, next, previous
+	 * and the last page
+	 * 
+	 * <p>
+	 * <https://api.phraseapp.com/v2/projects/255167955b335efb75fed179f65ea85b/tags?page=1&per_page=100>; rel=first,
+	 * <https://api.phraseapp.com/v2/projects/255167955b335efb75fed179f65ea85b/tags?page=16&per_page=100>; rel=last,
+	 * <https://api.phraseapp.com/v2/projects/255167955b335efb75fed179f65ea85b/tags?page=2&per_page=100>; rel=next
+	 * </p>
+	 * 
+	 * @param linksField
+	 * @return
+	 */
+	private Integer getLastPage(String linksField) {
+		Pattern allPages = Pattern.compile("[?|&]page=[^>&]*");
+
+		Matcher matcher = allPages.matcher(linksField);
+
+		List<Integer> pageValues = new LinkedList<Integer>();
+
+		while (matcher.find()) {
+			String value = matcher.group().split("=")[1];
+
+			pageValues.add(Integer.parseInt(value));
+		}
+
+		Integer maxPageSize = Collections.max(pageValues);
+		return maxPageSize;
+	}
+
+	/**
+	 * Downloads all translations for the given locales and tags and saves them as Java .properties files.
 	 * 
 	 * @param locales
-	 *            list of locales to download translations for all given tags
-	 *            for
+	 *            list of locales to download translations for all given tags for
 	 * @param tags
 	 *            list of tags to download translations of a locale for
 	 */
@@ -246,28 +336,19 @@ public class PhraseAppDownload extends Task {
 							// tags
 							if (tag.endsWith(".properties")) {
 								try {
-									URL url = new URL(
-											"https://phraseapp.com/api/v1/translations/download?auth_token="
-													+ projectAuthToken
-													+ "&locale="
-													+ locales.get(localeCode)
-													+ "&format=properties&tag="
-													+ tag);
-									HttpsURLConnection con = (HttpsURLConnection) url
-											.openConnection();
+									URL url = new URL(PhraseAppHelper.PHRASE_APP_BASE_URL + projectId + "/locales/"
+											+ locales.get(localeCode) + "/download?access_token=" + userAuthToken
+											+ "&file_format=properties&tag=" + tag);
+									HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
 
-									log("Getting '" + locales.get(localeCode)
-											+ "' translations for '" + tag
-											+ "' using 'GET' request to URL: "
-											+ url.toExternalForm());
+									log("Getting '" + localeCode + "' translations for '" + tag
+											+ "' using 'GET' request to URL: " + url.toExternalForm());
 
 									// execute request
 									int responseCode = con.getResponseCode();
 
-									log("Response Code for '"
-											+ locales.get(localeCode)
-											+ "' translation file '" + tag
-											+ "' : " + responseCode);
+									log("Response Code for '" + localeCode + "' translation file '" + tag + "' : "
+											+ responseCode);
 
 									// parse response as string
 									String response = PhraseAppHelper
@@ -296,13 +377,21 @@ public class PhraseAppDownload extends Task {
 									// create missing intermediary directories
 									file.getParentFile().mkdirs();
 
-									// remove comments
 									List<String> responseFiltered = new ArrayList<String>();
 									for (String responseLine : response
 											.split("\n")) {
-										if (!responseLine.startsWith("#")) {
-											responseFiltered.add(responseLine);
+										// skip comments
+										if (responseLine.startsWith("#")) {
+											continue;
 										}
+
+										// skip keys that don't have translations
+										String[] keyAndValue = responseLine.split("=");
+										if (keyAndValue.length > 1 && StringUtils.isBlank(keyAndValue[1])) {
+											continue;
+										}
+
+										responseFiltered.add(responseLine);
 									}
 
 									// concatenate to one string and remove
@@ -332,9 +421,7 @@ public class PhraseAppDownload extends Task {
 										translationOut.close();
 									}
 
-									log("Wrote content for '"
-											+ locales.get(localeCode)
-											+ "' translation file '" + tag
+									log("Wrote content for '" + localeCode + "' translation file '" + tag
 											+ "' to file '" + fileName + "'.");
 
 								} catch (MalformedURLException e) {

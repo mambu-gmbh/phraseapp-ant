@@ -6,12 +6,9 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.security.SecureRandom;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
@@ -19,11 +16,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 
 import org.apache.tools.ant.BuildException;
@@ -49,20 +44,31 @@ public class PhraseAppUpload extends Task {
 	private String locale;
 
 	/**
-	 * the auth token of the PhraseApp project
+	 * the auth token of the user who performs the action
 	 */
-	private String projectAuthToken;
+	private String userAuthToken;
+
+	/**
+	 * Project id from PhraseApp
+	 */
+	private String projectId;
 
 	/**
 	 * Internal test method to check if the Ant task is working
 	 * 
 	 * @param args
 	 *            ignored
+	 * @throws IOException
+	 * @throws ProtocolException
+	 * @throws MalformedURLException
+	 * @throws UnsupportedEncodingException
+	 * @throws FileNotFoundException
 	 */
 	public static void main(String[] args) {
 		PhraseAppUpload upload = new PhraseAppUpload();
 		upload.setSource("");
-		upload.setProjectAuthToken("");
+		upload.setUserAuthToken("");
+		upload.setProjectId("");
 		upload.setLocale(DEFAULT_LOCALE_CODE);
 		upload.execute();
 	}
@@ -71,8 +77,12 @@ public class PhraseAppUpload extends Task {
 		this.sourceDir = sourceDir;
 	}
 
-	public void setProjectAuthToken(String projectAuthToken) {
-		this.projectAuthToken = projectAuthToken;
+	public void setUserAuthToken(String userAuthToken) {
+		this.userAuthToken = userAuthToken;
+	}
+
+	public void setProjectId(String projectId) {
+		this.projectId = projectId;
 	}
 
 	public void setLocale(String locale) {
@@ -148,7 +158,7 @@ public class PhraseAppUpload extends Task {
 								log("Sent file upload request for file: "
 										+ file.getName()
 										+ " to "
-										+ "https://phraseapp.com/api/v1/translation_keys/upload/"
+										+ PhraseAppHelper.PHRASE_APP_BASE_URL + "/translation_keys/upload/"
 										+ ".");
 
 								if (connectionUpload.getResponseCode() == 200) {
@@ -246,7 +256,7 @@ public class PhraseAppUpload extends Task {
 		}
 	}
 
-	private String getNamespacePrefix(File file) {
+	public String getNamespacePrefix(File file) {
 		String prefix = "";
 		String fileName = file.getName();
 		String[] fileParts = fileName.split("\\.");
@@ -305,38 +315,17 @@ public class PhraseAppUpload extends Task {
 		String localeCode = locale != null && !locale.isEmpty() ? locale
 				: DEFAULT_LOCALE_CODE;
 
-		String request = "auth_token=" + projectAuthToken + "&filename="
-				+ file.getName() + "&file_content="
-				+ URLEncoder.encode(fileContentWithPrefixes, "UTF-8")
-				+ "&tags[]=" + file.getName() + "&locale_code=" + localeCode
-				+ "&file_format=" + "properties" + "&update_translations="
-				+ "1";
+		MultipartUtility multipart = new MultipartUtility(PhraseAppHelper.PHRASE_APP_BASE_URL + projectId + "/uploads",
+				"UTF-8");
+		multipart.addFormField("access_token", userAuthToken);
+		multipart.addFormField("file_format", "properties");
+		multipart.addFormField("locale_id", localeCode);
+		multipart.addFormField("tags", file.getName());
+		multipart.addFormField("update_translations", "true");
+		multipart.addFormField("file_encoding", "UTF-8");
 
-		URL urlUpload = new URL(
-				"https://phraseapp.com/api/v1/translation_keys/upload/");
-		HttpsURLConnection connectionUpload = (HttpsURLConnection) urlUpload
-				.openConnection();
-		connectionUpload.setHostnameVerifier(new HostnameVerifier() {
-			@Override
-			public boolean verify(String arg0, SSLSession arg1) {
-				return true;
-			}
-		});
+		multipart.addFilePartContent("file", file.getName(), fileContentWithPrefixes);
 
-		connectionUpload.setRequestMethod("POST");
-		connectionUpload.setDoInput(true);
-		connectionUpload.setDoOutput(true);
-		connectionUpload.setUseCaches(false);
-		connectionUpload.setRequestProperty("Content-Type",
-				"application/x-www-form-urlencoded");
-		connectionUpload.setRequestProperty("Content-Length",
-				String.valueOf(request.length()));
-
-		// get response from upload request
-		OutputStreamWriter writerUpload = new OutputStreamWriter(
-				connectionUpload.getOutputStream());
-		writerUpload.write(request);
-		writerUpload.flush();
-		return connectionUpload;
+		return multipart.getFinalizedConnection();
 	}
 }

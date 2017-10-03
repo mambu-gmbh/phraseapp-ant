@@ -43,23 +43,13 @@ import com.mambu.ant.backup.BackupServiceBuilder.BackupServiceProvider;
  * Ant target for downloading translation files from PhraseApp and placing them
  * in the right Java package.
  */
-public class PhraseAppDownload extends Task {
+public class PhraseAppDownload extends BaseTask {
 
 	/**
 	 * absolute path to the directory where the translation .properties files
 	 * are located
 	 */
 	private String destinationDir;
-
-	/**
-	 * the auth token of the user who performs the action
-	 */
-	private String userAuthToken;
-
-	/**
-	 * Project id from PhraseApp
-	 */
-	private String projectId;
 
 	/**
 	 * if set to true, places the translation files in the package according to
@@ -108,14 +98,6 @@ public class PhraseAppDownload extends Task {
 
 	public void setDestination(String destinationDir) {
 		this.destinationDir = destinationDir;
-	}
-
-	public void setUserAuthToken(String userAuthToken) {
-		this.userAuthToken = userAuthToken;
-	}
-
-	public void setProjectId(String projectId) {
-		this.projectId = projectId;
 	}
 
 	public void setMergeInPackageStructure(boolean mergeInPackageStructure) {

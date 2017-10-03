@@ -27,31 +27,19 @@ import org.apache.tools.ant.Task;
 /**
  * Ant target for uploading translation files to PhraseApp.
  */
-public class PhraseAppUpload extends Task {
-
-	private static final String DEFAULT_LOCALE_CODE = "English";
+public class PhraseAppUpload extends BaseTask {
 
 	/**
 	 * absolute path to the directory where the master translation .properties
 	 * files are located
 	 */
-	private String sourceDir;
+	protected String sourceDir;
 
 	/**
 	 * the long version of the locale from PhraseApp project to upload the
 	 * translations from the sourceDir to
 	 */
-	private String locale;
-
-	/**
-	 * the auth token of the user who performs the action
-	 */
-	private String userAuthToken;
-
-	/**
-	 * Project id from PhraseApp
-	 */
-	private String projectId;
+	protected String locale;
 
 	/**
 	 * Internal test method to check if the Ant task is working
@@ -73,21 +61,6 @@ public class PhraseAppUpload extends Task {
 		upload.execute();
 	}
 
-	public void setSource(String sourceDir) {
-		this.sourceDir = sourceDir;
-	}
-
-	public void setUserAuthToken(String userAuthToken) {
-		this.userAuthToken = userAuthToken;
-	}
-
-	public void setProjectId(String projectId) {
-		this.projectId = projectId;
-	}
-
-	public void setLocale(String locale) {
-		this.locale = locale;
-	}
 
 	/**
 	 * Uploads all *.properties files to PhraseApp from the source directory and
@@ -111,6 +84,14 @@ public class PhraseAppUpload extends Task {
 			e.printStackTrace();
 			throw new BuildException(e.getMessage());
 		}
+	}
+
+	public void setSource(String sourceDir) {
+		this.sourceDir = sourceDir;
+	}
+
+	public void setLocale(String locale) {
+		this.locale = locale;
 	}
 
 	private void uploadTranslationPropertiesFiles() {

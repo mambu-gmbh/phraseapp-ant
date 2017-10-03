@@ -29,7 +29,6 @@ import javax.net.ssl.HttpsURLConnection;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Task;
 
 import com.mambu.ant.backup.BackupService;
 import com.mambu.ant.backup.BackupServiceBuilder;
@@ -195,39 +194,7 @@ public class PhraseAppDownload extends BaseTask {
 		List<String> responses = new LinkedList<String>();
 
 		// parse response as string
-		responses.add(phraseApi.tags().getAll());
-
-		// the Phraseapp API is paginated, so we need to get the information about the last page and perform several
-		// calls till we fetch all the informations
-//		String linksField = con.getHeaderField("Link");
-//
-//		log("All tags link header value : " + linksField);
-//
-//		if (!StringUtils.isEmpty(linksField)) {
-//
-//			Integer lastPage = getLastPage(linksField);
-//
-//			log("Number of pages for getting all tags : " + lastPage);
-//
-//			if (lastPage > 1) {
-//				// first page was already retrived - from there we got the informations about the last page
-//				for (int i = 2; i <= lastPage; i++) {
-//
-//					// append the page index
-//					url = new URL(finalUrl + "&page=" + i);
-//					con = (HttpsURLConnection) url.openConnection();
-//
-//					log("Getting all tags using a 'GET' request to URL : " + url.toExternalForm());
-//
-//					// execute request
-//					responseCode = con.getResponseCode();
-//
-//					log("Response Code : " + responseCode);
-//
-//					responses.add(PhraseAppHelper.getAsString(con));
-//				}
-//			}
-//		}
+		responses = phraseApi.tags().getAll();
 
 		for (String response : responses) {
 			// parse JSON to locales list

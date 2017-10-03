@@ -2,7 +2,6 @@ package com.mambu.ant.phraseapp.api;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.function.Consumer;
 
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.utils.URIBuilder;
@@ -18,14 +17,12 @@ public class LocalesApi extends BaseApi {
 	private static final String LOCALE_DOWNLOAD_PATH = "/%s/download";
 
 	private final String baseUrl;
-	private final Consumer<String> logger;
 
 	public LocalesApi(PhraseApiSettings settings) {
 
 		super(settings);
 
 		this.baseUrl = String.format(LOCALES_ENDPOINT, settings.getProjectId());
-		this.logger = settings.getLogger();
 	}
 
 	public String getAll() {
@@ -33,9 +30,8 @@ public class LocalesApi extends BaseApi {
 		try {
 			String url = new URIBuilder(baseUrl).addParameter("per_page", "100").toString();
 
-			logger.accept("Getting all locales using a 'GET' request to URL : " + url);
-			return invoke(Request.Get(url))
-					.returnContent().asString();
+			log("Getting all locales using a 'GET' request to URL : " + url);
+			return invokeAsString(Request.Get(url));
 		} catch (URISyntaxException | IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -50,10 +46,9 @@ public class LocalesApi extends BaseApi {
 					.addParameter("tag", tag)
 					.toString();
 
-			logger.accept("Getting '" + localeCode + "' translations for '" + tag
+			log("Getting '" + localeCode + "' translations for '" + tag
 					+ "' using 'GET' request to URL: " + url);
-			return invoke(Request.Get(url))
-					.returnContent().asString();
+			return invokeAsString(Request.Get(url));
 		} catch (URISyntaxException | IOException e) {
 			throw new RuntimeException(e);
 		}

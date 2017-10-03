@@ -10,7 +10,6 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,9 +25,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,6 +34,8 @@ import org.apache.tools.ant.Task;
 import com.mambu.ant.backup.BackupService;
 import com.mambu.ant.backup.BackupServiceBuilder;
 import com.mambu.ant.backup.BackupServiceBuilder.BackupServiceProvider;
+import com.mambu.ant.phraseapp.PhraseApi;
+import com.mambu.ant.phraseapp.PhraseApiSettings;
 
 /**
  * Ant target for downloading translation files from PhraseApp and placing them
@@ -80,6 +78,11 @@ public class PhraseAppDownload extends BaseTask {
 	private BackupServiceProvider backupProvider = BackupServiceProvider.LOCAL;
 
 	/**
+	 * Phrase APP API integration
+	 */
+	private PhraseApi phraseApi;
+
+	/**
 	 * Internal test method to check if the Ant task is working
 	 * 
 	 * @param args
@@ -119,19 +122,16 @@ public class PhraseAppDownload extends BaseTask {
 	public void execute() throws org.apache.tools.ant.BuildException {
 		try {
 
-			// configure the SSLContext with another TrustManager to accept all
-			// SSL certificates
-			SSLContext ctx = SSLContext.getInstance("TLS");
-			ctx.init(new KeyManager[0],
-					new TrustManager[] { new DefaultTrustManager() },
-					new SecureRandom());
-			SSLContext.setDefault(ctx);
+			PhraseApiSettings settings = new PhraseApiSettings();
+			settings.setProjectId(projectId);
+			settings.setAuthenticationToken(userAuthToken);
+			settings.setLogger(this::log);
 
-			Map<String, String> locales = getMapOfLocales();
+			phraseApi = new PhraseApi(settings);
 
+//			Map<String, String> locales = getMapOfLocales();
 			List<String> tags = getListOfTags();
-
-			downloadTranslationPropertiesFiles(locales, tags);
+//			downloadTranslationPropertiesFiles(locales, tags);
 
 		} catch (Exception e) {
 			log("An error occurred '" + e.getLocalizedMessage() + "'.");
@@ -143,22 +143,9 @@ public class PhraseAppDownload extends BaseTask {
 
 	private Map<String, String> getMapOfLocales() throws IOException {
 
-		Map<String, String> locales = new HashMap<String, String>();
+		Map<String, String> locales = new HashMap<>();
 
-		URL url = new URL(PhraseAppHelper.PHRASE_APP_BASE_URL + projectId + "/locales?per_page=100&access_token="
-				+ userAuthToken);
-		HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
-
-		log("Getting all locales using a 'GET' request to URL : "
-				+ url.toExternalForm());
-
-		// execute request
-		int responseCode = con.getResponseCode();
-
-		log("Response Code : " + responseCode);
-
-		// parse response as string
-		String response = PhraseAppHelper.getAsString(con);
+		String response = phraseApi.locales().getAll();
 
 		// parse JSON to locales list
 		String[] localesJson = response.split("\\},\\{");
@@ -207,54 +194,40 @@ public class PhraseAppDownload extends BaseTask {
 		List<String> tags = new ArrayList<String>();
 		List<String> responses = new LinkedList<String>();
 
-		String finalUrl = PhraseAppHelper.PHRASE_APP_BASE_URL + projectId + "/tags?per_page=100&access_token="
-				+ userAuthToken;
-
-		URL url = new URL(finalUrl);
-		HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
-
-		log("Getting all tags using a 'GET' request to URL : "
-				+ url.toExternalForm());
-
-		// execute request
-		int responseCode = con.getResponseCode();
-
-		log("Response Code : " + responseCode);
-
 		// parse response as string
-		responses.add(PhraseAppHelper.getAsString(con));
+		responses.add(phraseApi.tags().getAll());
 
 		// the Phraseapp API is paginated, so we need to get the information about the last page and perform several
 		// calls till we fetch all the informations
-		String linksField = con.getHeaderField("Link");
-
-		log("All tags link header value : " + linksField);
-
-		if (!StringUtils.isEmpty(linksField)) {
-
-			Integer lastPage = getLastPage(linksField);
-
-			log("Number of pages for getting all tags : " + lastPage);
-
-			if (lastPage > 1) {
-				// first page was already retrived - from there we got the informations about the last page
-				for (int i = 2; i <= lastPage; i++) {
-
-					// append the page index
-					url = new URL(finalUrl + "&page=" + i);
-					con = (HttpsURLConnection) url.openConnection();
-
-					log("Getting all tags using a 'GET' request to URL : " + url.toExternalForm());
-
-					// execute request
-					responseCode = con.getResponseCode();
-
-					log("Response Code : " + responseCode);
-
-					responses.add(PhraseAppHelper.getAsString(con));
-				}
-			}
-		}
+//		String linksField = con.getHeaderField("Link");
+//
+//		log("All tags link header value : " + linksField);
+//
+//		if (!StringUtils.isEmpty(linksField)) {
+//
+//			Integer lastPage = getLastPage(linksField);
+//
+//			log("Number of pages for getting all tags : " + lastPage);
+//
+//			if (lastPage > 1) {
+//				// first page was already retrived - from there we got the informations about the last page
+//				for (int i = 2; i <= lastPage; i++) {
+//
+//					// append the page index
+//					url = new URL(finalUrl + "&page=" + i);
+//					con = (HttpsURLConnection) url.openConnection();
+//
+//					log("Getting all tags using a 'GET' request to URL : " + url.toExternalForm());
+//
+//					// execute request
+//					responseCode = con.getResponseCode();
+//
+//					log("Response Code : " + responseCode);
+//
+//					responses.add(PhraseAppHelper.getAsString(con));
+//				}
+//			}
+//		}
 
 		for (String response : responses) {
 			// parse JSON to locales list

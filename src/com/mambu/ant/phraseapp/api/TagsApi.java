@@ -16,6 +16,8 @@ import org.apache.http.util.EntityUtils;
 import com.mambu.ant.phraseapp.PhraseApiSettings;
 
 /**
+ * Integration with Phrase APP Tags API.
+ *
  * @author fgavrilescu
  */
 public class TagsApi extends BaseApi {

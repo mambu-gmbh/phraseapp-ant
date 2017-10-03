@@ -9,6 +9,8 @@ import org.apache.http.client.utils.URIBuilder;
 import com.mambu.ant.phraseapp.PhraseApiSettings;
 
 /**
+ * Integration with Phrase APP Locales API.
+ *
  * @author fgavrilescu
  */
 public class LocalesApi extends BaseApi {

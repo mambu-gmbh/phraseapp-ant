@@ -20,6 +20,8 @@ import org.apache.http.util.EntityUtils;
 import com.mambu.ant.phraseapp.PhraseApiSettings;
 
 /**
+ * Base class for integrations with Phrase APP APIs.
+ *
  * @author fgavrilescu
  */
 abstract class BaseApi {

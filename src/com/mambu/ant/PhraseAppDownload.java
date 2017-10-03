@@ -1,5 +1,7 @@
 package com.mambu.ant;
 
+import static com.mambu.ant.backup.Constants.DESTINATION_DIR;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,6 +34,10 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
+
+import com.mambu.ant.backup.BackupService;
+import com.mambu.ant.backup.BackupServiceBuilder;
+import com.mambu.ant.backup.BackupServiceBuilder.BackupServiceProvider;
 
 /**
  * Ant target for downloading translation files from PhraseApp and placing them
@@ -71,6 +77,18 @@ public class PhraseAppDownload extends Task {
 	 */
 	private boolean includeMainLocale;
 
+	// backup options
+
+	/**
+	 * if set to true, the translation files are backed up to a local file storage.
+	 */
+	private boolean backupFiles;
+
+	/**
+	 * the kind of backup to be performed. Currently only LOCAL but could be expanded to others as well.
+	 */
+	private BackupServiceProvider backupProvider = BackupServiceProvider.LOCAL;
+
 	/**
 	 * Internal test method to check if the Ant task is working
 	 * 
@@ -84,6 +102,7 @@ public class PhraseAppDownload extends Task {
 		download.setProjectId("");
 		download.setMergeInPackageStructure(false);
 		download.setIncludeMainLocale(false);
+		download.setBackupFiles(false);
 		download.execute();
 	}
 
@@ -107,6 +126,9 @@ public class PhraseAppDownload extends Task {
 		this.includeMainLocale = includeMainLocale;
 	}
 
+	public void setBackupFiles(boolean backupFiles) {
+		this.backupFiles = backupFiles;
+	}
 	/**
 	 * Create a PhraseApp session, download all translation *.properties files
 	 * for each locale and tag to the destination directory and destroy the
@@ -326,6 +348,8 @@ public class PhraseAppDownload extends Task {
 		// max 2 parallel connections are allowed by phraseapp, otherwise returns HTTP error code 429 
 		ExecutorService exec = Executors.newFixedThreadPool(2);
 
+		List<File> downloadedFiles = new ArrayList<>();
+
 		try {
 			for (final String localeCode : locales.keySet()) {
 				for (final String tag : tags) {
@@ -421,6 +445,8 @@ public class PhraseAppDownload extends Task {
 										translationOut.close();
 									}
 
+									downloadedFiles.add(file);
+
 									log("Wrote content for '" + localeCode + "' translation file '" + tag
 											+ "' to file '" + fileName + "'.");
 
@@ -448,8 +474,6 @@ public class PhraseAppDownload extends Task {
 				if (exec.awaitTermination(10, TimeUnit.MINUTES)) {
 					log("Download of all files was completed, download for "
 							+ failedDownloads + " files failed.");
-				} else {
-
 				}
 			} catch (InterruptedException e) {
 				log("Download of translation files failed due to '"
@@ -458,5 +482,26 @@ public class PhraseAppDownload extends Task {
 			}
 		}
 
+		backup(downloadedFiles);
+
+	}
+
+	private void backup(List<File> files) {
+
+		if (backupFiles) {
+			try {
+				BackupService backupService = BackupServiceBuilder.create(backupProvider)
+						.withProperty(DESTINATION_DIR, destinationDir)
+						.build();
+
+				long start = System.currentTimeMillis();
+				backupService.backup(files);
+				long end = System.currentTimeMillis();
+				log("Successfully backed up translations with " + backupProvider + " provider in " + (end-start) + "ms");
+			} catch (Exception e) {
+				log("Backup of translation files failed due to '" + e.getLocalizedMessage() + "'.");
+				e.printStackTrace();
+			}
+		}
 	}
 }

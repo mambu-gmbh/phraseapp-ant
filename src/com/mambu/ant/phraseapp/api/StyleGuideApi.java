@@ -9,7 +9,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.utils.URIBuilder;
 
-import com.mambu.ant.helper.JSONHelper;
 import com.mambu.ant.phraseapp.PhraseApiSettings;
 import com.mambu.ant.styleGuide.model.StyleGuideLightModel;
 
@@ -37,6 +36,7 @@ public class StyleGuideApi  extends BaseApi{
 
             HttpResponse response = invoke(Request.Get(url));
 
+            return null;
 
         } catch (URISyntaxException | IOException e) {
             throw new RuntimeException(e);

@@ -1,4 +1,4 @@
-package com.mambu.ant.order;
+package com.mambu.ant.order.model;
 
 /**
  * Pojo class used for posting order requests
@@ -6,49 +6,6 @@ package com.mambu.ant.order;
  * @author aifrim.
  */
 public class OrderModel {
-
-    public enum TranslationsProvider {
-
-        //for quality available options: standard, pro
-        GHENGO("gengo", "pro"),
-
-        //for quality available options: regular, premium, enterprise
-        TEXT_MASTER("textmaster", "enterprise");
-
-        private final String providerKey;
-        private final String defaultQuality;
-
-        TranslationsProvider(String providerKey, String defaultQuality) {
-
-            this.providerKey = providerKey;
-            this.defaultQuality = defaultQuality;
-        }
-
-        public String getProviderKey() {
-            return providerKey;
-        }
-
-        public String getDefaultQuality() {
-            return defaultQuality;
-        }
-    }
-
-    private OrderModel(Builder builder) {
-
-        lsp = builder.lsp;
-        source_locale_id = builder.source_locale_id;
-        target_locale_ids = builder.target_locale_ids;
-        translation_type = builder.translation_type;
-        styleguide_id = builder.styleguide_id;
-        include_untranslated_keys = builder.include_untranslated_keys;
-        include_unverified_translations = builder.include_unverified_translations;
-        category = builder.category;
-    }
-
-    public static Builder newBuilder() {
-        return new Builder();
-    }
-
 
     /**
      * Mandatory. Name of the LSP(translations provider) that should process this order. Can be one of gengo, textmaster.
@@ -76,6 +33,11 @@ public class OrderModel {
     private String styleguide_id;
 
     /**
+     * Optional. Message that is displayed to the translators for description.
+     */
+    private String message;
+
+    /**
      * Optional(Default: true). Order translations for keys with untranslated content in the selected target locales.
      */
     private Boolean include_untranslated_keys = true;
@@ -86,10 +48,21 @@ public class OrderModel {
     private Boolean include_unverified_translations = true;
 
     /**
-     * Mandatory(for TextMaster).Category to use.
+     * Mandatory(for TextMaster). Category to use, more codes can be found here: https://phraseapp.com/docs/api/v2/orders/
      */
     private String category = "C023";//Banking/Financial Services/Insurance
 
+    private OrderModel(Builder builder) {
+        lsp = builder.lsp;
+        source_locale_id = builder.source_locale_id;
+        target_locale_ids = builder.target_locale_ids;
+        translation_type = builder.translation_type;
+        styleguide_id = builder.styleguide_id;
+        message = builder.message;
+        include_untranslated_keys = builder.include_untranslated_keys;
+        include_unverified_translations = builder.include_unverified_translations;
+        category = builder.category;
+    }
 
     public static final class Builder {
         private String lsp;
@@ -97,6 +70,7 @@ public class OrderModel {
         private String[] target_locale_ids;
         private String translation_type;
         private String styleguide_id;
+        private String message;
         private Boolean include_untranslated_keys;
         private Boolean include_unverified_translations;
         private String category;
@@ -129,6 +103,11 @@ public class OrderModel {
             return this;
         }
 
+        public Builder message(String val) {
+            message = val;
+            return this;
+        }
+
         public Builder include_untranslated_keys(Boolean val) {
             include_untranslated_keys = val;
             return this;
@@ -147,5 +126,9 @@ public class OrderModel {
         public OrderModel build() {
             return new OrderModel(this);
         }
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
     }
 }

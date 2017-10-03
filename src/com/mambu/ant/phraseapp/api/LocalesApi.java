@@ -15,6 +15,7 @@ import com.mambu.ant.phraseapp.PhraseApiSettings;
 public class LocalesApi extends BaseApi {
 
 	private static final String LOCALES_ENDPOINT = Constants.BASE_ENDPOINT + "/locales";
+	private static final String LOCALE_DOWNLOAD_PATH = "/%s/download";
 
 	private final String baseUrl;
 	private final Consumer<String> logger;
@@ -33,6 +34,24 @@ public class LocalesApi extends BaseApi {
 			String url = new URIBuilder(baseUrl).addParameter("per_page", "100").toString();
 
 			logger.accept("Getting all locales using a 'GET' request to URL : " + url);
+			return invoke(Request.Get(url))
+					.returnContent().asString();
+		} catch (URISyntaxException | IOException e) {
+			throw new RuntimeException(e);
+		}
+
+	}
+
+	public String download(String localeId, String localeCode, String tag) {
+
+		try {
+			String url = new URIBuilder(String.format(baseUrl + LOCALE_DOWNLOAD_PATH, localeId))
+					.addParameter("file_format", "properties")
+					.addParameter("tag", tag)
+					.toString();
+
+			logger.accept("Getting '" + localeCode + "' translations for '" + tag
+					+ "' using 'GET' request to URL: " + url);
 			return invoke(Request.Get(url))
 					.returnContent().asString();
 		} catch (URISyntaxException | IOException e) {

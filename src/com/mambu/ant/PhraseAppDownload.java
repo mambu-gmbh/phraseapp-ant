@@ -1,6 +1,7 @@
 package com.mambu.ant;
 
 import static com.mambu.ant.backup.Constants.DESTINATION_DIR;
+import static java.util.stream.Collectors.toList;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -8,8 +9,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -23,8 +22,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.net.ssl.HttpsURLConnection;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -128,9 +125,10 @@ public class PhraseAppDownload extends BaseTask {
 
 			phraseApi = new PhraseApi(settings);
 
-//			Map<String, String> locales = getMapOfLocales();
+			Map<String, String> locales = getMapOfLocales();
 			List<String> tags = getListOfTags();
-//			downloadTranslationPropertiesFiles(locales, tags);
+			tags = filterOnlyPropertiesTags(tags);
+			downloadTranslationPropertiesFiles(locales, tags);
 
 		} catch (Exception e) {
 			log("An error occurred '" + e.getLocalizedMessage() + "'.");
@@ -138,6 +136,12 @@ public class PhraseAppDownload extends BaseTask {
 			throw new BuildException(e.getMessage());
 		}
 
+	}
+	private List<String> filterOnlyPropertiesTags(List<String> tags) {
+
+		return tags.stream()
+			.filter(tag -> tag.endsWith(".properties"))
+			.collect(toList());
 	}
 
 	private Map<String, String> getMapOfLocales() throws IOException {
@@ -282,23 +286,7 @@ public class PhraseAppDownload extends BaseTask {
 							// tags
 							if (tag.endsWith(".properties")) {
 								try {
-									URL url = new URL(PhraseAppHelper.PHRASE_APP_BASE_URL + projectId + "/locales/"
-											+ locales.get(localeCode) + "/download?access_token=" + userAuthToken
-											+ "&file_format=properties&tag=" + tag);
-									HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
-
-									log("Getting '" + localeCode + "' translations for '" + tag
-											+ "' using 'GET' request to URL: " + url.toExternalForm());
-
-									// execute request
-									int responseCode = con.getResponseCode();
-
-									log("Response Code for '" + localeCode + "' translation file '" + tag + "' : "
-											+ responseCode);
-
-									// parse response as string
-									String response = PhraseAppHelper
-											.getAsString(con);
+									String response = phraseApi.locales().download(locales.get(localeCode), localeCode, tag);
 
 									String fileName = "";
 									if (mergeInPackageStructure) {
@@ -372,16 +360,10 @@ public class PhraseAppDownload extends BaseTask {
 									log("Wrote content for '" + localeCode + "' translation file '" + tag
 											+ "' to file '" + fileName + "'.");
 
-								} catch (MalformedURLException e) {
+								} catch (Exception e) {
 									failedDownloads.incrementAndGet();
 									log("Could not download content for file '"
-											+ tag + "' due to invalid URL '"
-											+ e.getLocalizedMessage() + "'.");
-									e.printStackTrace();
-								} catch (IOException e) {
-									failedDownloads.incrementAndGet();
-									log("Could not download content for file '"
-											+ tag + "' due to IO error '"
+											+ tag + "' due to '"
 											+ e.getLocalizedMessage() + "'.");
 									e.printStackTrace();
 								}

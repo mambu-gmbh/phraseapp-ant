@@ -26,6 +26,9 @@ import com.mambu.ant.phraseapp.PhraseApiSettings;
  */
 abstract class BaseApi {
 
+	private static final String PHRASE_APP_HEADER_RATE_LIMIT_RESET = "X-Rate-Limit-Reset";
+	private static final String PHRASE_APP_HEADER_RATE_LIMIT_REMAINING = "X-Rate-Limit-Remaining";
+
 	private final Executor executor;
 	private final Consumer<String> logger;
 
@@ -47,15 +50,11 @@ abstract class BaseApi {
 
 	protected HttpResponse invoke(Request request) throws IOException {
 
-		//todo not threadsafe. put locks on the respective API endpoints. the thread safety issue is not that bad
-		// although. we might get multiple calls to the same API, all returning rateLimit=0, thus all sleeping
-
 		HttpResponse response = executor.execute(request).returnResponse();
 
-		int rateLimitRemaining = getRateLimitRemaining(response);
-		if (rateLimitRemaining == 0) {
+		if (isRateLimitReached(response)) {
 			long endOfRateLimitPeriodUnixTime = getRateLimitReset(response);
-			long currentUnixTime = System.currentTimeMillis() / 1000L;
+			long currentUnixTime = getCurrentUnixTime();
 			try {
 				long sleepTime = endOfRateLimitPeriodUnixTime - currentUnixTime;
 				log("Rate limit reached while executing '" + request + "'. Sleeping for '" + sleepTime + "s'.");
@@ -69,15 +68,25 @@ abstract class BaseApi {
 		return response;
 	}
 
+	private boolean isRateLimitReached(HttpResponse httpResponse) {
+
+		return getRateLimitRemaining(httpResponse) == 0;
+	}
+
+	private long getCurrentUnixTime() {
+
+		return System.currentTimeMillis() / 1000L;
+	}
+
 	private long getRateLimitReset(HttpResponse httpResponse) {
 
-		Header rateLimitResetHeader = httpResponse.getFirstHeader("X-Rate-Limit-Reset");
+		Header rateLimitResetHeader = httpResponse.getFirstHeader(PHRASE_APP_HEADER_RATE_LIMIT_RESET);
 		return Long.parseLong(rateLimitResetHeader.getValue());
 	}
 
 	private int getRateLimitRemaining(HttpResponse httpResponse) {
 
-		Header rateLimitRemainingHeader = httpResponse.getFirstHeader("X-Rate-Limit-Remaining");
+		Header rateLimitRemainingHeader = httpResponse.getFirstHeader(PHRASE_APP_HEADER_RATE_LIMIT_REMAINING);
 		// not all API calls are rate limited
 		if (rateLimitRemainingHeader == null) {
 			return 1;

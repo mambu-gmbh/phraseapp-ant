@@ -1,7 +1,7 @@
 package com.mambu.ant.phraseapp.api;
 
 /**
- * //todo move constants or change class to a better name
+ * General constants for Phrase APP API integration.
  *
  * @author fgavrilescu
  */

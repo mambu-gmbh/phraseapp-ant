@@ -10,21 +10,28 @@ import com.mambu.ant.phraseapp.api.TagsApi;
  */
 public class PhraseApi {
 
-	private final PhraseApiSettings settings;
+	private final LocalesApi localesApi;
+	private final TagsApi tagsApi;
 
-	public PhraseApi(PhraseApiSettings settings) {
+	private PhraseApi(PhraseApiSettings settings) {
 
-		this.settings = settings;
+		this.localesApi = new LocalesApi(settings);
+		this.tagsApi = new TagsApi(settings);
+	}
+
+	public static PhraseApi createInstance(PhraseApiSettings settings) {
+
+		return new PhraseApi(settings);
 	}
 
 	public LocalesApi locales() {
 
-		return new LocalesApi(settings);
+		return localesApi;
 	}
 
 	public TagsApi tags() {
 
-		return new TagsApi(settings);
+		return tagsApi;
 	}
 
 }

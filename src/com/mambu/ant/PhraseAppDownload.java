@@ -123,7 +123,7 @@ public class PhraseAppDownload extends BaseTask {
 			settings.setAuthenticationToken(userAuthToken);
 			settings.setLogger(this::log);
 
-			phraseApi = new PhraseApi(settings);
+			phraseApi = PhraseApi.createInstance(settings);
 
 			Map<String, String> locales = getMapOfLocales();
 			List<String> tags = getListOfTags();

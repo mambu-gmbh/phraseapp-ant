@@ -85,6 +85,11 @@ abstract class BaseApi {
 		return response;
 	}
 
+	private boolean isResponseRateLimited(HttpResponse httpResponse) {
+
+		return httpResponse.getStatusLine().getStatusCode() == 429;
+	}
+
 	private void sleepTillRateLimitTimeouts(Request request, HttpResponse httpResponse) {
 
 		log("Rate limit reached while executing '%s'.", request);
@@ -106,17 +111,6 @@ abstract class BaseApi {
 
 	}
 
-	private String initLock(Request request) {
-
-		Matcher lockKeyMatcher = LOCK_KEY_PATTERN.matcher(request.toString());
-		if (lockKeyMatcher.find()) {
-			String key = lockKeyMatcher.group("key");
-			locks.putIfAbsent(key, new ReentrantLock());
-			return key;
-		}
-		throw new RuntimeException("Probably the regex is not good enough to extract the lock key");
-	}
-
 	private void executeWithApiLock(Request request, Runnable execution) {
 
 		String lockKey = initLock(request);
@@ -129,9 +123,15 @@ abstract class BaseApi {
 		}
 	}
 
-	private boolean isResponseRateLimited(HttpResponse httpResponse) {
+	private String initLock(Request request) {
 
-		return httpResponse.getStatusLine().getStatusCode() == 429;
+		Matcher lockKeyMatcher = LOCK_KEY_PATTERN.matcher(request.toString());
+		if (lockKeyMatcher.find()) {
+			String key = lockKeyMatcher.group("key");
+			locks.putIfAbsent(key, new ReentrantLock());
+			return key;
+		}
+		throw new RuntimeException("Probably the regex is not good enough to extract the lock key");
 	}
 
 	private boolean isRateLimitReached(HttpResponse httpResponse) {

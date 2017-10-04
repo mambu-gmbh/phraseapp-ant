@@ -1,6 +1,7 @@
 package com.mambu.ant.phraseapp.api;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -97,7 +98,7 @@ abstract class BaseApi {
 	protected String invokeAsString(Request request) throws IOException {
 
 		HttpResponse response = invoke(request);
-		return EntityUtils.toString(response.getEntity(), "UTF-8");
+		return EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
 	}
 
 	protected void log(String message) {

@@ -2,6 +2,7 @@ package com.mambu.ant.phraseapp.api;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -52,7 +53,7 @@ public class TagsApi extends BaseApi {
 
 		log("Getting all tags using a 'GET' request to URL : " + url);
 		HttpResponse response = invoke(Request.Get(url));
-		accumulator.add(EntityUtils.toString(response.getEntity(), "UTF-8"));
+		accumulator.add(EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8));
 		String nextPageUrl = getNextPageUrl(response);
 		if (nextPageUrl != null) {
 			load(nextPageUrl, accumulator);

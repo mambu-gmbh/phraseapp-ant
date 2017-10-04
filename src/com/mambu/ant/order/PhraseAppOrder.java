@@ -7,12 +7,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.BuildException;
 
 import com.mambu.ant.BaseTask;
+import com.mambu.ant.helper.FileWriter;
+import com.mambu.ant.helper.JSONHelper;
 import com.mambu.ant.order.model.RequestCreateOrderModel;
 import com.mambu.ant.order.model.ResponseCreateOrderModel;
 import com.mambu.ant.order.model.TranslationsProvider;
 import com.mambu.ant.phraseapp.PhraseApi;
 import com.mambu.ant.phraseapp.PhraseApiSettings;
 import com.mambu.ant.styleGuide.model.ResponseStyleGuideLightModel;
+
+import static java.util.stream.Collectors.joining;
 
 /**
  * Ant target for ordering translations to PhraseApp
@@ -23,9 +27,17 @@ public class PhraseAppOrder extends BaseTask {
 
     private static final String TRANSLATION_SEPARATOR = ",";
 
+    private static final String ORDER_ID_PROPERTY_KEY = "createdOrderIds";
+
     //languages for which the translations should be ordered
     private String gengoTranslations;
     private String textMasterTranslations;
+
+    /**
+     * absolute path to the directory where the translation .properties files
+     * are located
+     */
+    private String destination;
 
     //data for the email message that will be sent tot the translators
     private String contactEmail;
@@ -48,19 +60,6 @@ public class PhraseAppOrder extends BaseTask {
 
         PhraseAppOrder order = new PhraseAppOrder();
 
-        order.setContactName("");
-        order.setContactEmail("");
-        order.setMambuAppURL("");
-        order.setMambuUsername("");
-        order.setMambuPassword("");
-
-        order.setUserAuthToken("");
-        order.setProjectId("");
-//        order.setGengoTranslations("Chinese");
-//        order.setTextMasterTranslations("Burmese-Myanmar");
-        order.setGengoTranslations("Chinese,French,Romanian,Portuguese,Spanish,Indonesian");
-        order.setTextMasterTranslations("Burmese-Myanmar,Georgian");
-
         order.execute();
     }
 
@@ -81,12 +80,20 @@ public class PhraseAppOrder extends BaseTask {
 
             initAPI();
 
+            log("Loading all existing style guides from phrase app...");
             List<ResponseStyleGuideLightModel> registeredStyleGuides = phraseApi.styleGuides().getAll();
 
             List<ResponseCreateOrderModel> resultOrderModelList = new ArrayList<>();
 
             makeOrdersForProvider(TranslationsProvider.GENGO, gengoTranslations, registeredStyleGuides, resultOrderModelList);
             makeOrdersForProvider(TranslationsProvider.TEXT_MASTER, textMasterTranslations, registeredStyleGuides, resultOrderModelList);
+
+            String concatenatedResultIDs = resultOrderModelList.stream()
+                    .map(ResponseCreateOrderModel::getId)
+                    .collect(joining(TRANSLATION_SEPARATOR));
+
+            FileWriter.writeProperty(destination, ORDER_ID_PROPERTY_KEY, concatenatedResultIDs);
+
 
         } catch (Exception e) {
 
@@ -99,6 +106,8 @@ public class PhraseAppOrder extends BaseTask {
 
     private void initAPI() {
 
+        log("Initialising phrase app API...");
+
         PhraseApiSettings settings = new PhraseApiSettings();
         settings.setProjectId(projectId);
         settings.setAuthenticationToken(userAuthToken);
@@ -107,7 +116,7 @@ public class PhraseAppOrder extends BaseTask {
         phraseApi = PhraseApi.createInstance(settings);
     }
 
-    private void makeOrdersForProvider(TranslationsProvider provider, String input, List<ResponseStyleGuideLightModel> registeredStyleGuides,  List<ResponseCreateOrderModel> resultOrderModelList) {
+    private void makeOrdersForProvider(TranslationsProvider provider, String input, List<ResponseStyleGuideLightModel> registeredStyleGuides, List<ResponseCreateOrderModel> resultOrderModelList) {
 
         if (StringUtils.isEmpty(input)) {
 
@@ -118,9 +127,11 @@ public class PhraseAppOrder extends BaseTask {
 
         for (String translation : translations) {
 
-            String styleGuideId = getStyleGuideId(registeredStyleGuides, translation);
+            ResponseStyleGuideLightModel styleGuide = getStyleGuideId(registeredStyleGuides, translation);
 
-            RequestCreateOrderModel requestCreateOrderModel = createOrderModel(provider, translation, styleGuideId);
+            RequestCreateOrderModel requestCreateOrderModel = createOrderModel(provider, translation, styleGuide != null ? styleGuide.getId() : null);
+
+            log(String.format("Creating order for %s' using '%s' and '%s' style guide", translation, provider.getCategory(), styleGuide != null ? styleGuide.getTitle() : ""));
 
             ResponseCreateOrderModel response = phraseApi.orders().crateOrder(requestCreateOrderModel);
             resultOrderModelList.add(response);
@@ -128,13 +139,13 @@ public class PhraseAppOrder extends BaseTask {
 
     }
 
-    private String getStyleGuideId(List<ResponseStyleGuideLightModel> registeredStyleGuides, String translation) {
+    private ResponseStyleGuideLightModel getStyleGuideId(List<ResponseStyleGuideLightModel> registeredStyleGuides, String translation) {
 
         for (ResponseStyleGuideLightModel responseStyleGuideLightModel : registeredStyleGuides) {
 
             if (responseStyleGuideLightModel.getTitle().startsWith(translation)) {
 
-                return responseStyleGuideLightModel.getId();
+                return responseStyleGuideLightModel;
             }
 
         }
@@ -178,5 +189,9 @@ public class PhraseAppOrder extends BaseTask {
 
     public void setMambuPassword(String mambuPassword) {
         this.mambuPassword = mambuPassword;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
     }
 }

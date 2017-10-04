@@ -8,7 +8,6 @@ import org.apache.tools.ant.BuildException;
 
 import com.mambu.ant.BaseTask;
 import com.mambu.ant.helper.FileWriter;
-import com.mambu.ant.helper.JSONHelper;
 import com.mambu.ant.order.model.RequestCreateOrderModel;
 import com.mambu.ant.order.model.ResponseCreateOrderModel;
 import com.mambu.ant.order.model.TranslationsProvider;
@@ -23,7 +22,7 @@ import static java.util.stream.Collectors.joining;
  *
  * @author aifrim.
  */
-public class PhraseAppOrder extends BaseTask {
+public class PhraseAppCreateOrder extends BaseTask {
 
     private static final String TRANSLATION_SEPARATOR = ",";
 
@@ -58,7 +57,7 @@ public class PhraseAppOrder extends BaseTask {
      */
     public static void main(String[] args) {
 
-        PhraseAppOrder order = new PhraseAppOrder();
+        PhraseAppCreateOrder order = new PhraseAppCreateOrder();
 
         order.execute();
     }
@@ -131,7 +130,7 @@ public class PhraseAppOrder extends BaseTask {
 
             RequestCreateOrderModel requestCreateOrderModel = createOrderModel(provider, translation, styleGuide != null ? styleGuide.getId() : null);
 
-            log(String.format("Creating order for %s' using '%s' and '%s' style guide", translation, provider.getCategory(), styleGuide != null ? styleGuide.getTitle() : ""));
+            log(String.format("Creating order for %s' using '%s' and '%s' style guide", translation, provider.getProviderKey(), styleGuide != null ? styleGuide.getTitle() : ""));
 
             ResponseCreateOrderModel response = phraseApi.orders().crateOrder(requestCreateOrderModel);
             resultOrderModelList.add(response);

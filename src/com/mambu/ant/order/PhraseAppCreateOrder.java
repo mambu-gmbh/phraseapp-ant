@@ -46,11 +46,6 @@ public class PhraseAppCreateOrder extends BaseTask {
     private String mambuPassword;
 
     /**
-     * Phrase APP API integration
-     */
-    private PhraseApi phraseApi;
-
-    /**
      * Internal test method to check if the Ant task is working
      *
      * @param args ignored
@@ -63,7 +58,7 @@ public class PhraseAppCreateOrder extends BaseTask {
     }
 
     /**
-     * Create a  PhraseApp session and for the given list of internationalization locales, orders will be created
+     * Create a PhraseApp session and for the given list of internationalization locales, orders will be created
      */
     @Override
     public void execute() throws BuildException {
@@ -101,18 +96,6 @@ public class PhraseAppCreateOrder extends BaseTask {
 
             throw new BuildException(e.getMessage());
         }
-    }
-
-    private void initAPI() {
-
-        log("Initialising phrase app API...");
-
-        PhraseApiSettings settings = new PhraseApiSettings();
-        settings.setProjectId(projectId);
-        settings.setAuthenticationToken(userAuthToken);
-        settings.setLogger(this::log);
-
-        phraseApi = PhraseApi.createInstance(settings);
     }
 
     private void makeOrdersForProvider(TranslationsProvider provider, String input, List<ResponseStyleGuideLightModel> registeredStyleGuides, List<ResponseCreateOrderModel> resultOrderModelList) {

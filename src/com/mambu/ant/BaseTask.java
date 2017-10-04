@@ -2,6 +2,9 @@ package com.mambu.ant;
 
 import org.apache.tools.ant.Task;
 
+import com.mambu.ant.phraseapp.PhraseApi;
+import com.mambu.ant.phraseapp.PhraseApiSettings;
+
 /**
  * Base task used for keeping the common data between defined ant tasks
  *
@@ -21,6 +24,11 @@ public abstract class BaseTask extends Task {
      */
     protected String projectId;
 
+    /**
+     * Phrase APP API integration
+     */
+    protected PhraseApi phraseApi;
+
 
     public void setUserAuthToken(String userAuthToken) {
         this.userAuthToken = userAuthToken;
@@ -28,6 +36,18 @@ public abstract class BaseTask extends Task {
 
     public void setProjectId(String projectId) {
         this.projectId = projectId;
+    }
+
+    protected void initAPI() {
+
+        log("Initialising phrase app API...");
+
+        PhraseApiSettings settings = new PhraseApiSettings();
+        settings.setProjectId(projectId);
+        settings.setAuthenticationToken(userAuthToken);
+        settings.setLogger(this::log);
+
+        phraseApi = PhraseApi.createInstance(settings);
     }
 
 

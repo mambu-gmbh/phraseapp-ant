@@ -74,11 +74,6 @@ public class PhraseAppDownload extends BaseTask {
 	private BackupServiceProvider backupProvider = BackupServiceProvider.LOCAL;
 
 	/**
-	 * Phrase APP API integration
-	 */
-	private PhraseApi phraseApi;
-
-	/**
 	 * Internal test method to check if the Ant task is working
 	 * 
 	 * @param args
@@ -118,12 +113,7 @@ public class PhraseAppDownload extends BaseTask {
 	public void execute() throws org.apache.tools.ant.BuildException {
 		try {
 
-			PhraseApiSettings settings = new PhraseApiSettings();
-			settings.setProjectId(projectId);
-			settings.setAuthenticationToken(userAuthToken);
-			settings.setLogger(this::log);
-
-			phraseApi = PhraseApi.createInstance(settings);
+			initAPI();
 
 			Map<String, String> locales = getMapOfLocales();
 			List<String> tags = getListOfTags();

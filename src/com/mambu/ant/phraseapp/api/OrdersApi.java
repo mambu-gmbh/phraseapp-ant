@@ -6,7 +6,8 @@ import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
 
 import com.mambu.ant.helper.JSONHelper;
-import com.mambu.ant.order.model.OrderModel;
+import com.mambu.ant.order.model.RequestCreateOrderModel;
+import com.mambu.ant.order.model.ResponseCreateOrderModel;
 import com.mambu.ant.phraseapp.PhraseApiSettings;
 
 /**
@@ -25,16 +26,19 @@ public class OrdersApi extends BaseApi{
         this.baseUrl = String.format(ORDERS_ENDPOINT, settings.getProjectId());
     }
 
-    public String crateOrder(OrderModel orderModel) {
+    public ResponseCreateOrderModel crateOrder(RequestCreateOrderModel requestCreateOrderModel) {
 
        try {
-           String bodyContent = JSONHelper.toJSON(orderModel);
+           String bodyContent = JSONHelper.toJSON(requestCreateOrderModel);
 
-           return invokeAsString(Request.Post(this.baseUrl).bodyString(bodyContent, ContentType.APPLICATION_JSON));
+           String callResult = invokeAsString(Request.Post(this.baseUrl).bodyString(bodyContent, ContentType.APPLICATION_JSON));
+
+           ResponseCreateOrderModel responseCreateOrderModel = JSONHelper.fromJSON(callResult, ResponseCreateOrderModel.class);
+
+           return responseCreateOrderModel;
 
        } catch (IOException e) {
            throw new RuntimeException(e);
        }
     }
-
 }

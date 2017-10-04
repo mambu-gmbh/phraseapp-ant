@@ -5,7 +5,7 @@ import java.util.Date;
 /**
  * @author aifrim.
  */
-public class StyleGuideLightModel {
+public class ResponseStyleGuideLightModel {
 
     private String id;
     private String title;

@@ -11,7 +11,7 @@ public final class OrderMessageHelper {
 
             "This is a request to translate some modules of Mambu's core banking platform. The core module has already been translated, this order involves only some messages that should be added before the release. \n" +
             "Please follow the translation style guide closely. \n" +
-            "To get an idea of the application you can login to our test environment at https://translation.sandbox.mambu.com/ with username \"english\" and password \"xuAKE4AMhY4m2pLz\". Feel free to click any button and change any data , except for user data.\n" +
+            "To get an idea of the application you can login to our test environment at %s with username \"%s\" and password \"%s\". Feel free to click any button and change any data , except for user data.\n" +
             "If you have any questions, please don't hesitate to contact me directly at %s\n\n" +
 
             "Thanks for your effort! \n" +
@@ -20,9 +20,10 @@ public final class OrderMessageHelper {
     private OrderMessageHelper(){};
 
 
-    public static String getOrderMessage(String contactEmail, String contactName) {
+    public static String getOrderMessage(String contactEmail, String contactName, String  mambuAppURL,
+                                         String mambuUsername, String  mambuPassword) {
 
-        return String.format(ORDER_MESSAGE, contactEmail, contactName);
+        return String.format(ORDER_MESSAGE,mambuAppURL, mambuUsername, mambuPassword, contactEmail, contactName);
 
     }
 

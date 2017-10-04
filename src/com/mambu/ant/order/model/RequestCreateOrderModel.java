@@ -5,7 +5,7 @@ package com.mambu.ant.order.model;
  *
  * @author aifrim.
  */
-public class OrderModel {
+public class RequestCreateOrderModel {
 
     /**
      * Mandatory. Name of the LSP(translations provider) that should process this order. Can be one of gengo, textmaster.
@@ -40,19 +40,22 @@ public class OrderModel {
     /**
      * Optional(Default: true). Order translations for keys with untranslated content in the selected target locales.
      */
-    private Boolean include_untranslated_keys = true;
+    private Boolean include_untranslated_keys;
 
     /**
      * Optional(Default: false). Order translations for keys with unverified content in the selected target locales. Default: false
      */
-    private Boolean include_unverified_translations = true;
+    private Boolean include_unverified_translations;
 
     /**
      * Mandatory(for TextMaster). Category to use, more codes can be found here: https://phraseapp.com/docs/api/v2/orders/
      */
-    private String category = "C023";//Banking/Financial Services/Insurance
+    private String category ;//Banking/Financial Services/Insurance
 
-    private OrderModel(Builder builder) {
+    protected RequestCreateOrderModel(){}
+
+    private RequestCreateOrderModel(Builder builder) {
+
         lsp = builder.lsp;
         source_locale_id = builder.source_locale_id;
         target_locale_ids = builder.target_locale_ids;
@@ -65,14 +68,15 @@ public class OrderModel {
     }
 
     public static final class Builder {
+
         private String lsp;
         private String source_locale_id;
         private String[] target_locale_ids;
         private String translation_type;
         private String styleguide_id;
         private String message;
-        private Boolean include_untranslated_keys;
-        private Boolean include_unverified_translations;
+        private Boolean include_untranslated_keys  = true;;
+        private Boolean include_unverified_translations  = true;
         private String category;
 
         private Builder() {
@@ -123,8 +127,8 @@ public class OrderModel {
             return this;
         }
 
-        public OrderModel build() {
-            return new OrderModel(this);
+        public RequestCreateOrderModel build() {
+            return new RequestCreateOrderModel(this);
         }
     }
 

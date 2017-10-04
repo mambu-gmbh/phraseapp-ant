@@ -27,82 +27,82 @@ import com.mambu.ant.phraseapp.PhraseApiSettings;
  */
 abstract class BaseApi {
 
-	private static final String PHRASE_APP_HEADER_RATE_LIMIT_RESET = "X-Rate-Limit-Reset";
-	private static final String PHRASE_APP_HEADER_RATE_LIMIT_REMAINING = "X-Rate-Limit-Remaining";
+    private static final String PHRASE_APP_HEADER_RATE_LIMIT_RESET = "X-Rate-Limit-Reset";
+    private static final String PHRASE_APP_HEADER_RATE_LIMIT_REMAINING = "X-Rate-Limit-Remaining";
 
-	private final Executor executor;
-	private final Consumer<String> logger;
+    private final Executor executor;
+    private final Consumer<String> logger;
 
-	protected BaseApi(PhraseApiSettings settings) {
+    protected BaseApi(PhraseApiSettings settings) {
 
-		HttpHost phraseApiHost = new HttpHost(Constants.PHRASE_HOSTNAME, Constants.PHRASE_PORT, Constants.PHRASE_PROTOCOL);
-		Credentials phraseApiCredentials = new UsernamePasswordCredentials(settings.getAuthenticationToken(), "");
+        HttpHost phraseApiHost = new HttpHost(Constants.PHRASE_HOSTNAME, Constants.PHRASE_PORT, Constants.PHRASE_PROTOCOL);
+        Credentials phraseApiCredentials = new UsernamePasswordCredentials(settings.getAuthenticationToken(), "");
 
-		HttpClient httpClient = HttpClients.custom()
-				.setDefaultRequestConfig(RequestConfig.custom()
-						.setCookieSpec(CookieSpecs.STANDARD).build())
-				.build();
+        HttpClient httpClient = HttpClients.custom()
+                .setDefaultRequestConfig(RequestConfig.custom()
+                        .setCookieSpec(CookieSpecs.STANDARD).build())
+                .build();
 
-		this.logger = settings.getLogger();
-		this.executor = Executor.newInstance(httpClient)
-				.auth(phraseApiHost, phraseApiCredentials)
-				.authPreemptive(phraseApiHost);
-	}
+        this.logger = settings.getLogger();
+        this.executor = Executor.newInstance(httpClient)
+                .auth(phraseApiHost, phraseApiCredentials)
+                .authPreemptive(phraseApiHost);
+    }
 
-	protected HttpResponse invoke(Request request) throws IOException {
+    protected HttpResponse invoke(Request request) throws IOException {
 
-		HttpResponse response = executor.execute(request).returnResponse();
+        HttpResponse response = executor.execute(request).returnResponse();
 
-		if (isRateLimitReached(response)) {
-			long endOfRateLimitPeriodUnixTime = getRateLimitReset(response);
-			long currentUnixTime = getCurrentUnixTime();
-			try {
-				long sleepTime = endOfRateLimitPeriodUnixTime - currentUnixTime;
-				log("Rate limit reached while executing '" + request + "'. Sleeping for '" + sleepTime + "s'.");
-				Thread.sleep(TimeUnit.SECONDS.toMillis(sleepTime));
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				// todo: throw e
-			}
-		}
+        if (isRateLimitReached(response)) {
+            long endOfRateLimitPeriodUnixTime = getRateLimitReset(response);
+            long currentUnixTime = getCurrentUnixTime();
+            try {
+                long sleepTime = endOfRateLimitPeriodUnixTime - currentUnixTime;
+                log("Rate limit reached while executing '" + request + "'. Sleeping for '" + sleepTime + "s'.");
+                Thread.sleep(TimeUnit.SECONDS.toMillis(sleepTime));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                // todo: throw e
+            }
+        }
 
-		return response;
-	}
+        return response;
+    }
 
-	private boolean isRateLimitReached(HttpResponse httpResponse) {
+    private boolean isRateLimitReached(HttpResponse httpResponse) {
 
-		return getRateLimitRemaining(httpResponse) == 0;
-	}
+        return getRateLimitRemaining(httpResponse) == 0;
+    }
 
-	private long getCurrentUnixTime() {
+    private long getCurrentUnixTime() {
 
-		return System.currentTimeMillis() / 1000L;
-	}
+        return System.currentTimeMillis() / 1000L;
+    }
 
-	private long getRateLimitReset(HttpResponse httpResponse) {
+    private long getRateLimitReset(HttpResponse httpResponse) {
 
-		Header rateLimitResetHeader = httpResponse.getFirstHeader(PHRASE_APP_HEADER_RATE_LIMIT_RESET);
-		return Long.parseLong(rateLimitResetHeader.getValue());
-	}
+        Header rateLimitResetHeader = httpResponse.getFirstHeader(PHRASE_APP_HEADER_RATE_LIMIT_RESET);
+        return Long.parseLong(rateLimitResetHeader.getValue());
+    }
 
-	private int getRateLimitRemaining(HttpResponse httpResponse) {
+    private int getRateLimitRemaining(HttpResponse httpResponse) {
 
-		Header rateLimitRemainingHeader = httpResponse.getFirstHeader(PHRASE_APP_HEADER_RATE_LIMIT_REMAINING);
-		// not all API calls are rate limited
-		if (rateLimitRemainingHeader == null) {
-			return 1;
-		}
-		return Integer.parseInt(rateLimitRemainingHeader.getValue());
-	}
+        Header rateLimitRemainingHeader = httpResponse.getFirstHeader(PHRASE_APP_HEADER_RATE_LIMIT_REMAINING);
+        // not all API calls are rate limited
+        if (rateLimitRemainingHeader == null) {
+            return 1;
+        }
+        return Integer.parseInt(rateLimitRemainingHeader.getValue());
+    }
 
-	protected String invokeAsString(Request request) throws IOException {
+    protected String invokeAsString(Request request) throws IOException {
 
-		HttpResponse response = invoke(request);
-		return EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-	}
+        HttpResponse response = invoke(request);
+        return EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+    }
 
-	protected void log(String message) {
+    protected void log(String message) {
 
-		logger.accept(message);
-	}
+        logger.accept(message);
+    }
 }

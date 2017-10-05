@@ -45,7 +45,7 @@ public class PhraseAppCheckOrdersCompleted extends BaseTask {
 
             ResponseCreateOrderModel response = phraseApi.orders().getOrder(orderId);
 
-            log(String.format("The order for %s is %s and has the %s completed progress", response.getTarget_locales().get(0).getName(), response.getState(), response.getProgress_percent()));
+            log(String.format("The order for %s is %s and has %s percentage completed", response.getTarget_locales().get(0).getName(), response.getState(), response.getProgress_percent()));
 
             allOrdersCompleted &= COMPLETED_STATE.equalsIgnoreCase(response.getState());
         }

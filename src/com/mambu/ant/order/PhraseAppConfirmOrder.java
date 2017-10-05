@@ -16,6 +16,14 @@ public class PhraseAppConfirmOrder extends BaseTask {
 
     private String orderIds;
 
+
+    public static void main(String[] args) {
+
+        PhraseAppConfirmOrder confirmOrder = new PhraseAppConfirmOrder();
+
+        confirmOrder.execute();
+    }
+
     /**
      * Create a PhraseApp session and for the given list of order ids, orders will confirmed
      */
@@ -37,7 +45,7 @@ public class PhraseAppConfirmOrder extends BaseTask {
 
             ResponseCreateOrderModel response = phraseApi.orders().confirmOrder(orderId);
 
-            log(String.format("Order %s for language % was confirmed", response.getId(), response.getTarget_locales().get(0).getName()));
+            log(String.format("Order %s for language %s was confirmed", response.getId(), response.getTarget_locales().get(0).getName()));
         }
     }
 

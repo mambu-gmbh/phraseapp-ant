@@ -27,7 +27,7 @@ public class OrdersApi extends BaseApi{
         super(settings);
 
         this.baseUrl = String.format(CREATE_ORDERS_ENDPOINT, settings.getProjectId());
-        this.confirmOrderUrl = String.format(CREATE_ORDERS_ENDPOINT, settings.getProjectId());
+        this.confirmOrderUrl = String.format(CONFIRM_ORDERS_ENDPOINT, settings.getProjectId(), "%s");
     }
 
     public ResponseCreateOrderModel crateOrder(RequestCreateOrderModel requestCreateOrderModel) {

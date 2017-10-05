@@ -61,4 +61,20 @@ public class OrdersApi extends BaseApi{
         }
 
     }
+
+    public ResponseCreateOrderModel getOrder(String orderId) {
+
+        try {
+            String getOrderURL = baseUrl + "/" + orderId;
+
+
+            String callResult = invokeAsString(Request.Get(getOrderURL));
+
+            return JSONHelper.fromJSON(callResult, ResponseCreateOrderModel.class);
+
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

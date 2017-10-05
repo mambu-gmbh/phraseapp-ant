@@ -45,19 +45,23 @@ public class ResponseCreateOrderModel extends RequestCreateOrderModel {
 
     private List<TargetLocale> target_locales;
 
+    private String progress_percent;
+
+    private String state;
+
     public String getId() {
         return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public List<TargetLocale> getTarget_locales() {
         return target_locales;
     }
 
-    public void setTarget_locales(List<TargetLocale> target_locales) {
-        this.target_locales = target_locales;
+    public String getProgress_percent() {
+        return progress_percent;
+    }
+
+    public String getState() {
+        return state;
     }
 }

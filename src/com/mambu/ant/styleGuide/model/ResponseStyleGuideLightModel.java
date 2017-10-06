@@ -3,6 +3,8 @@ package com.mambu.ant.styleGuide.model;
 import java.util.Date;
 
 /**
+ * Pojo with basic info that is returned by phrase app when a list of style guides is requested
+ *
  * @author aifrim.
  */
 public class ResponseStyleGuideLightModel {

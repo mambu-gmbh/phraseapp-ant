@@ -11,6 +11,8 @@ import com.mambu.ant.order.model.ResponseCreateOrderModel;
 import com.mambu.ant.phraseapp.PhraseApiSettings;
 
 /**
+ *  Integration with Phrase APP Orders API.
+ *
  * @author aifrim.
  */
 public class OrdersApi extends BaseApi{

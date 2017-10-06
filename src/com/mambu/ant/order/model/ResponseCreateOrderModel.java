@@ -3,6 +3,8 @@ package com.mambu.ant.order.model;
 import java.util.List;
 
 /**
+ * Pojo class used for keeping order responses from phrase app
+ *
  * @author aifrim.
  */
 public class ResponseCreateOrderModel extends RequestCreateOrderModel {
@@ -43,10 +45,19 @@ public class ResponseCreateOrderModel extends RequestCreateOrderModel {
      */
     private String id;
 
+    /**
+     * The target locales for which the order was posted
+     */
     private List<TargetLocale> target_locales;
 
+    /**
+     * The percentage of the completed order
+     */
     private String progress_percent;
 
+    /**
+     * The state of the order (completed, in_progress,etc)
+     */
     private String state;
 
     public String getId() {

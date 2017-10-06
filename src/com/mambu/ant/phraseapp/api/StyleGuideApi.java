@@ -14,6 +14,8 @@ import com.mambu.ant.phraseapp.PhraseApiSettings;
 import com.mambu.ant.styleGuide.model.ResponseStyleGuideLightModel;
 
 /**
+ * Integration with Phrase APP StyleGuide API.
+ *
  * @author aifrim.
  */
 public class StyleGuideApi  extends BaseApi{

@@ -49,6 +49,7 @@ public class PhraseAppConfirmOrder extends BaseTask {
         }
     }
 
+    //for ant parameters injection
     public void setOrderIds(String orderIds) {
         this.orderIds = orderIds;
     }

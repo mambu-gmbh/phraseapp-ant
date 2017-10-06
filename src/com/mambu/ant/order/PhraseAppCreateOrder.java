@@ -145,34 +145,42 @@ public class PhraseAppCreateOrder extends BaseTask {
 
     }
 
+    //for ant parameters injection
     public void setGengoTranslations(String gengoTranslations) {
         this.gengoTranslations = gengoTranslations;
     }
 
+    //for ant parameters injection
     public void setTextMasterTranslations(String textMasterTranslations) {
         this.textMasterTranslations = textMasterTranslations;
     }
 
+    //for ant parameters injection
     public void setContactEmail(String contactEmail) {
         this.contactEmail = contactEmail;
     }
 
+    //for ant parameters injection
     public void setContactName(String contactName) {
         this.contactName = contactName;
     }
 
+    //for ant parameters injection
     public void setMambuAppURL(String mambuAppURL) {
         this.mambuAppURL = mambuAppURL;
     }
 
+    //for ant parameters injection
     public void setMambuUsername(String mambuUsername) {
         this.mambuUsername = mambuUsername;
     }
 
+    //for ant parameters injection
     public void setMambuPassword(String mambuPassword) {
         this.mambuPassword = mambuPassword;
     }
 
+    //for ant parameters injection
     public void setDestination(String destination) {
         this.destination = destination;
     }

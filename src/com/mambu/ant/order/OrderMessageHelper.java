@@ -1,6 +1,8 @@
 package com.mambu.ant.order;
 
 /**
+ * Helper class used for convenient messages creation
+ *
  * @author aifrim.
  */
 public final class OrderMessageHelper {

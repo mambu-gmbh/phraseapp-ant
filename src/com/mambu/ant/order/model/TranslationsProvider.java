@@ -1,6 +1,9 @@
 package com.mambu.ant.order.model;
 
 /**
+ *
+ * Enum used for keeping the supported translation providers by this app and phrase app
+ *
  * @author aifrim.
  */
 public enum TranslationsProvider {

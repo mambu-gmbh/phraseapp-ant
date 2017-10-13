@@ -86,10 +86,11 @@ abstract class BaseApi {
 		return response;
 	}
 
-	private void validateStatus(HttpResponse response) {
+	private void validateStatus(HttpResponse response) throws IOException {
 
 		if (!isResponseRateLimited(response) &&
 				!isResponse2xxSuccessful(response)) {
+			log("Failed response body: " + EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8));
 			throw new RuntimeException("Invalid HTTP response returned: " + response.getStatusLine().getStatusCode());
 		}
 	}

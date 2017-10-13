@@ -51,7 +51,7 @@ public class TagsApi extends BaseApi {
 
 	private void load(String url, List<String> accumulator) throws IOException {
 
-		log("Getting all tags using a 'GET' request to URL : " + url);
+		log("Getting all tags using a 'GET' request to URL: %s", url);
 		HttpResponse response = invoke(Request.Get(url));
 		accumulator.add(EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8));
 		String nextPageUrl = getNextPageUrl(response);

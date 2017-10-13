@@ -32,7 +32,7 @@ public class LocalesApi extends BaseApi {
 		try {
 			String url = new URIBuilder(baseUrl).addParameter("per_page", "100").toString();
 
-			log("Getting all locales using a 'GET' request to URL : " + url);
+			log("Getting all locales using a 'GET' request to URL: %s", url);
 			return invokeAsString(Request.Get(url));
 		} catch (URISyntaxException | IOException e) {
 			throw new RuntimeException(e);
@@ -48,8 +48,7 @@ public class LocalesApi extends BaseApi {
 					.addParameter("tag", tag)
 					.toString();
 
-			log("Getting '" + localeCode + "' translations for '" + tag
-					+ "' using 'GET' request to URL: " + url);
+			log("Getting '%s' translations for '%s' using 'GET' request to URL: %s", localeCode, tag, url);
 			return invokeAsString(Request.Get(url));
 		} catch (URISyntaxException | IOException e) {
 			throw new RuntimeException(e);

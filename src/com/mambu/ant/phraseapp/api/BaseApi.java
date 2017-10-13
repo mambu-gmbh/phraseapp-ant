@@ -70,6 +70,7 @@ abstract class BaseApi {
 	protected HttpResponse invoke(Request request) throws IOException {
 
 		HttpResponse response = executor.execute(request).returnResponse();
+		validateStatus2xxSuccessful(response);
 
 		// the PhraseAPP API could already be in rate limiter mode, some time before this service was called
 		if (isResponseRateLimited(response)) {
@@ -83,6 +84,14 @@ abstract class BaseApi {
 		}
 
 		return response;
+	}
+
+	private void validateStatus2xxSuccessful(HttpResponse response) {
+
+		int statusCode = response.getStatusLine().getStatusCode();
+		if (statusCode < 200 || statusCode >= 300) {
+			throw new RuntimeException("Invalid HTTP response returned: " + statusCode);
+		}
 	}
 
 	private boolean isResponseRateLimited(HttpResponse httpResponse) {

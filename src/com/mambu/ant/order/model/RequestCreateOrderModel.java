@@ -75,8 +75,8 @@ public class RequestCreateOrderModel {
         private String translation_type;
         private String styleguide_id;
         private String message;
-        private Boolean include_untranslated_keys  = true;;
-        private Boolean include_unverified_translations  = true;
+        private Boolean include_untranslated_keys  = true;
+        private Boolean include_unverified_translations  = false;
         private String category;
 
         private Builder() {
